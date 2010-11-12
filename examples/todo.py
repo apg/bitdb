@@ -1,37 +1,61 @@
+#!/usr/bin/env python
 # Todo list based on bitdb
-
+#
+# To Use:
+#
+#   python todo.py init api_username api_key
+#
+# This will create a  ~/.bitdb_todo with your username and password
+#
+#   python todo.py add "I need to do this"
+#   python todo.py add "this needs to get done as well"
+#
+# To see what we need to do:
+#
+#   python todo.py list
+#   k920ak   - This needs to get done as well
+#   109akk   - I need to do this
+#
+# To mark one of those items as done:
+#
+#   python todo.py done k920ak
+#
+#
+# How it works
+#
 # in ~/.bitdb_todo a bunch of things are stored:
-
+#
 # username:api_key
 # latest_revision
 # latest_revision^1
 # latest_revision^2
 # latest_revision^N
-
+#
 # Essentially, in each of these revisions:
-
+#
 #  {'tag': 'todo-snapshot',
 #   'parent': 'key',
 #   'items': ['key1', 'key2', 'key3', 'keyN']}
-
+#
 # Each item is stored as:
-  
+#  
 #  {'tag': 'todo-item',
 #   'text': 'go to the store'}
-
+#
 # When marking an item as "done," it's simply a matter of
 # removing it from the index and creating a new index ('revision') 
-
-# Locally, in ~/.bitdb_todo_cache/ we store all the objects
+#
+# Locally, in ~/.bitdb/, we store all the objects
 # to avoid hitting bit.ly too too often, but if we refer to
 # them and they don't exist, we refresh.
-
-# Objects, are always a one time store.
-
+#
+# Objects, are always write once.
+#
 # Essentially, we should be able to recreate the entire database
 # from the latest revision since we always store a revision's parent, though
 # this app does not expose that, and therefore I don't know if it actually 
 # works. :)
+
 
 from __future__ import with_statement
 from contextlib import closing
