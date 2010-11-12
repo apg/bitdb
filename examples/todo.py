@@ -3,7 +3,7 @@
 #
 # To Use:
 #
-#   python todo.py init api_username api_key
+#   python todo.py config api_username api_key
 #
 # This will create a  ~/.bitdb_todo with your username and password
 #
