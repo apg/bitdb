@@ -159,8 +159,8 @@ class BitlyDB(object):
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 4:
         db = BitlyDB(sys.argv[1], sys.argv[2])
-        key = db.put({'Andrew Gwozdziewycz': {'twitter': 'apgwoz'}})
+        print db.get(sys.argv[3])
     else:
-        print 'usage: bitdb.py username apikey'
+        print 'usage: bitdb.py username apikey key'

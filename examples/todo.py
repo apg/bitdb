@@ -38,6 +38,7 @@ from contextlib import closing
 
 import os
 import sys
+import datetime
 import bitdb
 
 LOG_FILE = os.path.expanduser('~/.bitdb_todo')
@@ -106,6 +107,7 @@ class TodoList(object):
         """Returns the revision id
         """
         data = {'tag': 'todo-snapshot',
+                'date': str(datetime.datetime.now()),
                 'parent': parent or self._current_revision,
                 'items': self._current_items}
         rev = self._database.put(data)
@@ -136,7 +138,20 @@ class TodoList(object):
 
     def log(self):
         """Returns the list of revisions"""
-        return self._revisions
+        revs = self._database.getmulti(self._revisions)
+        return [(r, revs[r]) for r in self._revisions]
+
+    def history(self):
+        """Returns the list of full revisions with items"""
+        log = self.log()
+        hist = []
+        for rev, data in log:
+            tmp = self._database.getmulti(data['items'])
+            items = [(i, tmp[i]) for i in data['items']]
+            data['items'] = items
+            hist.append((rev, data))
+        return hist
+        
 
     def done(self, key):
         """Returns a new revision after removing an item
@@ -156,6 +171,7 @@ Commands:
    add "text"          Add text as a todo
    list <rev>          List the current todos at revision (optional arg)
    done [item]         Mark item as done
+   history             Show the full history
    log                 Get a list of all the revisions
    config [user] [key] Get a list of all the revisions
    help                This message
@@ -185,6 +201,20 @@ def log(tl):
     else:
         print >>sys.stderr, "No revisions"
 
+def history(tl):
+    revs = tl.history()
+    if revs:
+        for rev, data in revs:
+            print 'Revision: %s' % rev
+            print 'Date: %s' % data.get('date', '')
+            print 'Parent: %s' % data.get('parent', '')
+            print 'Items:'
+            print '\n'.join('   %-10s - %s' % (i, d['text']) \
+                                for i, d in data['items'])
+            print
+    else:
+        print >>sys.stderr, "No revisions"
+
 def list_(tl, rev):
     items = tl.list(rev)
     if items:
@@ -201,7 +231,7 @@ def config(tl, user, key):
 
 def main(argv):
     if len(argv) == 1 or not argv[1] in ('add', 'list', 'log', 
-                                         'done', 'config'):
+                                         'done', 'config', 'history'):
         help()
         sys.exit(1)
 
@@ -214,6 +244,8 @@ def main(argv):
         list_(tl, None if length == 2 else argv[2])
     elif argv[1] == 'log':
         log(tl)
+    elif argv[1] == 'history':
+        history(tl)
     elif argv[1] == 'done' and length == 3:
         done(tl, argv[2])
     elif argv[1] == 'config' and length == 4:
